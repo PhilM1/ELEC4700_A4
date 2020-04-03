@@ -7,7 +7,7 @@ R1 = 1;
 Cap = 0.25;
 R2 = 2;
 L = 0.2;
-R3 = 10;
+R3 = 25.356630807098327; %from A3 simulation
 a = 100;
 R4 = 0.1;
 R0 = 1000;
@@ -18,7 +18,7 @@ freq = 100;
 G =[ -1,  1,  1,    0,    0,     0,  0;
       0,  0,  0,   -1,    1,     0,  0; 
      -1,  0,  0,    0, 1/R1, -1/R1,  0;
-      0,  0, -1, 1/R3,    1,     0,  0;
+      0,  0, -1, 1/R3,    0,     0,  0;
       0, -1,  0,    0, 1/R2,     0,  0;     
       0,  0,  a,    0,    0,     0, -1; 
       0,  0,  0,    0,    0,     1,  0];
@@ -121,10 +121,13 @@ Vcount = 1;
  figure();
  plot(CArr, gain2Arr);
  title('Gain of C Perturbations (AC, 20dB per Decade)');
- xlabel('C');
+ xlabel('C (F)');
  ylabel('Gain (dB)');
  
  figure();
  histogram(real(gain2Arr))
+ xlim([15.7519, 15.755]);
  title('Gain Histogram of C Perturbations');
+ xlabel('Gain (dB)');
+ ylabel('Count');
  
