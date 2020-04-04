@@ -131,3 +131,97 @@ Vcount = 1;
  xlabel('Gain (dB)');
  ylabel('Count');
  
+% ASSIGNMENT TRANSIENT QUESTION
+%================================
+%---------- Question 4 ----------
+%================================
+%Transient analysis
+simLength = 1; %simulation length in seconds
+numSteps = 1000; %number of total steps in the simulation
+timestep = simLength / numSteps;
+curTime = 0;
+V0TransArr = [];
+VinTransArr = [];
+timeArr = [];
+gainArr = [];
+Vcount = 1;
+VTransPrev = 0;
+Vin2Freq = 1/0.03;
+PulseOffsetTime = 0.06;
+PulseStdDev = 0.03;
+ while (curTime <= simLength)
+    if(curTime < 0.03) %First component of input, step function
+        Vin1 = 0;
+    else
+        Vin1 = 1;
+    end        
+    Vin2 = sin(2*pi*curTime*Vin2Freq); %Second component of input, sine wave   
+    if(curTime >= PulseOffsetTime) %Third component of input, Gaussian Pulse
+        Vin3 = exp((-(curTime - PulseOffsetTime)^2)/(2*(PulseStdDev^2)));
+    else
+        Vin3 = 0;
+    end    
+    VinNew = Vin1+Vin2+Vin3; %Combined inputs
+     
+    F = [0;
+    0;
+    0;
+    0;
+    0;
+    0;
+    VinNew];
+
+    Fnew = (F - C*VTransPrev/timestep);
+    VTrans = (G + C/timestep)\Fnew;
+    VTransPrev = VTrans;
+    V0TransArr(Vcount) = VTrans(7)*R0/(R4+R0);
+    VinTransArr(Vcount) = VinNew;
+    timeArr(Vcount) = curTime;
+    gainArr(Vcount) = 20*log10(V0TransArr(Vcount)/VinNew);
+    Vcount = Vcount + 1;
+    curTime = curTime + timestep;
+ end
+
+%Transient Plots
+figure();
+plot(timeArr, VinTransArr);
+title('Vin over Time for Transient Simulation');
+xlabel('Time (s)');
+ylabel('Voltage (V)');
+
+figure();
+plot(timeArr, V0TransArr);
+title('Vout over Time for Transient Simulation');
+xlabel('Time (s)');
+ylabel('Voltage (V)');
+
+figure();
+plot(timeArr, V0TransArr);
+title('Vout over Time for Transient Simulation (ZOOM)');
+xlabel('Time (s)');
+ylabel('Voltage (V)');
+xlim([0, 0.1]);
+
+%Frequency domain (Fourier)
+f = (1/timestep)*(-(numSteps/2):(numSteps/2-1))./numSteps;
+VinFourier = abs(fftshift(fft(VinTransArr)));
+figure();
+plot(f, VinFourier);
+title('Input Frequency Response of Transient Simulation');
+xlabel('Frequency (Hz)');
+ylabel('FFT(Vin)');
+
+VoutFourier = abs(fftshift(fft(V0TransArr)));
+figure();
+plot(f, VoutFourier);
+title('Output Frequency Response of Transient Simulation');
+xlabel('Frequency (Hz)');
+ylabel('FFT(Vout)');
+ 
+
+
+
+
+
+
+

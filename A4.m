@@ -20,3 +20,8 @@ plot(voltageArr,fittedLine,'r');
 title(['Current vs Voltage (R3 = ', num2str(R3), ' ohm)']);
 xlabel('Voltage (V)');
 ylabel('Current (A)');
+
+%================================
+%-------- Question 3 & 4 --------
+%================================
+%See edited MNPA.m for Q3 & Q4
