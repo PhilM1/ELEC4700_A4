@@ -1,6 +1,6 @@
 %MNPA for ELEC4700
 %Philippe Masson
-clear;
+%clear;
 close all;
 
 R1 = 1;
@@ -171,8 +171,8 @@ PulseStdDev = 0.03;
     0;
     VinNew];
 
-    Fnew = (F - C*VTransPrev/timestep);
-    VTrans = (G + C/timestep)\Fnew;
+    Fnew = (F - C*VTransPrev);
+    VTrans = (G + C)\Fnew;
     VTransPrev = VTrans;
     V0TransArr(Vcount) = VTrans(7)*R0/(R4+R0);
     VinTransArr(Vcount) = VinNew;
@@ -184,44 +184,137 @@ PulseStdDev = 0.03;
 
 %Transient Plots
 figure();
+plot(timeArr, V0TransArr);
+hold on;
 plot(timeArr, VinTransArr);
-title('Vin over Time for Transient Simulation');
+title('Vin and Vout over Time for Transient Simulation');
 xlabel('Time (s)');
 ylabel('Voltage (V)');
-
-figure();
-plot(timeArr, V0TransArr);
-title('Vout over Time for Transient Simulation');
-xlabel('Time (s)');
-ylabel('Voltage (V)');
-
-figure();
-plot(timeArr, V0TransArr);
-title('Vout over Time for Transient Simulation (ZOOM)');
-xlabel('Time (s)');
-ylabel('Voltage (V)');
-xlim([0, 0.1]);
+legend('Vout', 'Vin');
 
 %Frequency domain (Fourier)
 f = (1/timestep)*(-(numSteps/2):(numSteps/2-1))./numSteps;
 VinFourier = abs(fftshift(fft(VinTransArr)));
-figure();
-plot(f, VinFourier);
-title('Input Frequency Response of Transient Simulation');
-xlabel('Frequency (Hz)');
-ylabel('FFT(Vin)');
-
 VoutFourier = abs(fftshift(fft(V0TransArr)));
 figure();
 plot(f, VoutFourier);
-title('Output Frequency Response of Transient Simulation');
+hold on;
+plot(f, VinFourier);
+title('Input and Output Frequency Response of Transient Simulation');
 xlabel('Frequency (Hz)');
-ylabel('FFT(Vout)');
+ylabel('FFT(Vin)');
+legend('Output', 'Input');
  
 
 
+% ASSIGNMENT NOISE QUESTION
+%================================
+%---------- Question 5 ----------
+%================================
+%Transient analysis with Noise
 
+Cn = 0.00001;
+NoiseMag = 0.001;
 
+%    I1, I2, I3,   V3,   V2,    V1,  V
+C = [ 0,  0,  0,    0,    0,     0,  0;
+      0,  0,  L,    0,    0,     0,  0; 
+      0,  0,  0,    0,  Cap,  -Cap,  0;
+      0,  0,  0,   Cn,    0,     0,  0;
+      0,  0,  0,    0,    0,     0,  0;    
+      0,  0,  0,    0,    0,     0,  0;
+      0,  0,  0,    0,    0,     0,  0];
+ 
+simLength = 1; %simulation length in seconds
+numSteps = 1000; %number of total steps in the simulation
+timestep = simLength / numSteps;
+curTime = 0;
+V0TransArr = [];
+VinTransArr = [];
+timeArr = [];
+gainArr = [];
+Vcount = 1;
+VTransPrev = 0;
+Vin2Freq = 1/0.03;
+PulseOffsetTime = 0.06;
+PulseStdDev = 0.03;
 
+while (curTime <= simLength)
+    if(curTime >= PulseOffsetTime) %Third component of input, Gaussian Pulse
+        Vin3 = exp((-(curTime - PulseOffsetTime)^2)/(2*(PulseStdDev^2)));
+    else
+        Vin3 = 0;
+    end    
+    VinNew = Vin3; %Combined inputs
+    In = 0.001*normrnd(0,1);
 
+    F = [0;
+         0;
+         0;
+         In;
+         0;
+         0;
+         VinNew];
+
+    Fnew = (F - C*VTransPrev);
+    VTrans = (G + C)\Fnew;
+    VTransPrev = VTrans;
+    V0TransArr(Vcount) = VTrans(7)*R0/(R4+R0);
+    VinTransArr(Vcount) = VinNew;
+    timeArr(Vcount) = curTime;
+    gainArr(Vcount) = 20*log10(V0TransArr(Vcount)/VinNew);
+    Vcount = Vcount + 1;
+    curTime = curTime + timestep;
+end
+
+%Transient Plots with Noise
+figure();
+plot(timeArr, V0TransArr);
+hold on;
+plot(timeArr, VinTransArr);
+title(['Vin and Vout over Time for Transient Noise Simulation (Cn=', num2str(Cn),')']);
+xlabel('Time (s)');
+ylabel('Voltage (V)');
+legend('Vout', 'Vin');
+
+%Frequency domain (Fourier)
+f = (1/timestep)*(-(numSteps/2):(numSteps/2-1))./numSteps;
+VinFourier = abs(fftshift(fft(VinTransArr)));
+VoutFourier = abs(fftshift(fft(V0TransArr)));
+figure();
+plot(f, VoutFourier);
+hold on;
+plot(f, VinFourier);
+title('Input and Output Frequency Response of Transient Noise Simulation');
+xlabel('Frequency (Hz)');
+ylabel('FFT(Vin)');
+legend('Output', 'Input');
+
+%Transient Plots with Noise
+figure();
+plot(timeArr, V0TransArr);
+title(['Vout over Time for Transient Noise Simulation (Cn=', num2str(Cn),')']);
+xlabel('Time (s)');
+ylabel('Voltage (V)');
+
+%Transient Plots with Noise
+% figure(42);
+% plot(timeArr, V0TransArr1);
+% hold on;
+% plot(timeArr, V0TransArr2);
+% plot(timeArr, V0TransArr3);
+% title('Vout over Time for Transient Noise Simulations with varying Cn');
+% xlabel('Time (s)');
+% ylabel('Voltage (V)');
+% legend('Cn = 0.1', 'Cn = 0.01', 'Cn = 0.001');
+
+% figure(43);
+% plot(timeArr1, V0TransArr1);
+% hold on;
+% plot(timeArr2, V0TransArr2, 'g');
+% plot(timeArr3, V0TransArr3, 'r');
+% title('Vout over Time for Transient Noise Simulations with varying timestep');
+% xlabel('Time (s)');
+% ylabel('Voltage (V)');
+% legend('timestep = 0.001', 'timestep = 0.002', 'timestep = 0.01');
 

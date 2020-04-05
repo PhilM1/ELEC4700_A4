@@ -22,6 +22,6 @@ xlabel('Voltage (V)');
 ylabel('Current (A)');
 
 %================================
-%-------- Question 3 & 4 --------
+%------ Question 3 & 4 & 5 ------
 %================================
-%See edited MNPA.m for Q3 & Q4
+%See edited MNPA.m for Q3 & Q4 & Q5
